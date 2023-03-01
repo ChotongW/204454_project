@@ -3,7 +3,8 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox as mess
 import tkinter.simpledialog as tsd
-import cv2, os
+import cv2
+import os
 import csv
 import numpy as np
 from PIL import Image
@@ -52,8 +53,8 @@ def TakeImages():
             "haarcascade_frontalface_default.xml"
         )  # from git hub https://github.com/opencv/opencv/tree/master/data/haarcascades
         faces = face_cascade.detectMultiScale(gray, 1.05, 5)
-        print(faces)
-        print(type(faces))
+        # print(faces)
+        # print(type(faces))
         for (x, y, w, h) in faces:
             # drawing rectangle for face
             cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
@@ -62,7 +63,7 @@ def TakeImages():
             # saving the captured face in the dataset folder TrainingImage
             cv2.imwrite(
                 "dataset/User." + Id + "." + str(sampleNum) + ".jpg",
-                gray[y : y + h, x : x + w],
+                gray[y: y + h, x: x + w],
             )
         # display the frame
         fpsInfo = "FPS: " + str(1.0 / (time.time() - start_time))
@@ -88,17 +89,29 @@ def TakeImages():
     message1.configure(text=res)
 
 
+# def TrainImages():
+#     recognizer = (
+#         cv2.face.LBPHFaceRecognizer_create()
+#     )  # recognizer = cv2.face.createLBPHFaceRecognizer()
+#     harcascadePath = "haarcascade_frontalface_default.xml"
+#     detector = cv2.CascadeClassifier(harcascadePath)
+#     faces, Id = getImagesAndLabels("dataset")
+#     Id = np.array(Id, dtype=np.int32) # convert Id to numpy array of integers
+#     recognizer.train(faces, np.array(Id))
+#     recognizer.save("TrainingImageLabel\Trainner.yml")
+#     res = "Image Trained"  +",".join(str(f) for f in Id)
+#     message.configure(text=res)
+
 def TrainImages():
-    recognizer = (
-        cv2.face.LBPHFaceRecognizer_create()
-    )  # recognizer = cv2.face.createLBPHFaceRecognizer()
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
     harcascadePath = "haarcascade_frontalface_default.xml"
     detector = cv2.CascadeClassifier(harcascadePath)
-    faces, Id = getImagesAndLabels("dataset")
-    recognizer.train(faces, np.array(Id))
+    faces, Ids = getImagesAndLabels("dataset")
+    recognizer.train(faces, np.array(Ids))
     recognizer.save("TrainingImageLabel\Trainner.yml")
-    res = "Image Trained"  # +",".join(str(f) for f in Id)
+    res = "Image Trained" + ",".join(str(f) for f in Ids)
     message.configure(text=res)
+    return faces, Ids
 
 
 def getImagesAndLabels(path):
@@ -111,7 +124,19 @@ def getImagesAndLabels(path):
         Id = int(os.path.split(imagePath)[-1].split(".")[1])
         faces.append(imageNp)
         Ids.append(Id)
-    return faces, Ids
+    return faces, Ids# Load images and labels
+    # faces = []
+    # labels = []
+    # for root, dirs, files in os.walk("TrainingImage"):
+    #     for file in files:
+    #         if file.endswith("png") or file.endswith("jpg"):
+    #             path = os.path.join(root, file)
+    #             label = int(os.path.basename(root))
+    #             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    #             faces.append(img)
+    #             labels.append(label)
+
+    # return faces, labels
 
 
 def psw():
@@ -138,6 +163,9 @@ def TrackImages():
     harcascadePath = "haarcascade_frontalface_default.xml"
     faceCascade = cv2.CascadeClassifier(harcascadePath)
 
+    faces, Ids = TrainImages()
+
+
     cam = cv2.VideoCapture(0)
     font = cv2.FONT_HERSHEY_SIMPLEX
     col_names = ["Id", "", "Name", "", "Date", "", "Time", ""]
@@ -145,7 +173,8 @@ def TrackImages():
     if exists1:
         df = pd.read_csv("StudentDetails\StudentDetails.csv")
     else:
-        mess._show(title="ไม่มีรายละเอียด", message="ไม่มีรายละเอียดข้อมูลโปรดตรวจสอบ!")
+        mess._show(title="ไม่มีรายละเอียด",
+                   message="ไม่มีรายละเอียดข้อมูลโปรดตรวจสอบ!")
         cam.release()
         cv2.destroyAllWindows()
         window.destroy()
@@ -167,35 +196,43 @@ def TrackImages():
 
         start_time = time.time()
         # if (nowTime - startTime) > 0.01:
-
+        # TrainImages()
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         faces = faceCascade.detectMultiScale(gray, 1.05, 5, minSize=(20, 20))
+        # TrainImages()
         for (x, y, w, h) in faces:
             cv2.rectangle(im, (x, y), (x + w, y + h), (225, 0, 0), 2)
-
-            # ของเดิม serial, conf = recognizer.predict(gray[y:y + h, x:x + w])
-            conf = recognizer.predict(gray[y : y + h, x : x + w])
-
-            if conf[1] < 50:
+            gray_face = gray[y: y + h, x: x + w]
+        #     # ของเดิม serial, conf = recognizer.predict(gray[y:y + h, x:x + w])
+            # conf = recognizer.predict(gray[y: y + h, x: x + w])
+            label, conf = recognizer.predict(gray_face)
+            if conf < 50:
                 print(conf)
                 ts = time.time()
                 date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
-                timeStamp = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S")
-                ID = str(ID)
-                ID = ID[1:-1]
+                timeStamp = datetime.datetime.fromtimestamp(
+                    ts).strftime("%H:%M:%S")
+                # ID = str(ID)
+                # ID = ID[1:-1]
                 bb = bb[2:-2]
+                ID = str(Ids[label])
+                # bb = str(df.loc[df['Id'] == int(ID)]['Name'].values)
 
             else:
                 print(conf)
                 ts = time.time()
                 date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
-                timeStamp = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S")
-                timeStamp1 = datetime.datetime.fromtimestamp(ts).strftime("%H-%M-%S")
+                timeStamp = datetime.datetime.fromtimestamp(
+                    ts).strftime("%H:%M:%S")
+                timeStamp1 = datetime.datetime.fromtimestamp(
+                    ts).strftime("%H-%M-%S")
                 ID = "000000"
                 ID = ID[1:-1]
                 bb = "Undefined"
+                # ID = str(Ids[label])
+                # bb = str(df.loc[df['Id'] == int(ID)]['Name'].values)
 
-                if conf[1] > 75:
+                if conf > 75:
 
                     attendance = [
                         str(ID),
@@ -354,7 +391,8 @@ lbl = tk.Label(
 )
 lbl.place(x=80, y=55)
 
-txt = tk.Entry(frame2, width=32, fg="black", bg="white", font=("times", 15, " bold "))
+txt = tk.Entry(frame2, width=32, fg="black",
+               bg="white", font=("times", 15, " bold "))
 txt.place(x=30, y=88)
 
 lbl2 = tk.Label(
@@ -428,7 +466,8 @@ filemenu = tk.Menu(menubar, tearoff=0)
 # filemenu.add_command(label='เปลี่ยนรหัส', command = change_pass)
 # filemenu.add_command(label='ติดต่อ', command = contact)
 filemenu.add_command(label="ออก", command=window.destroy)
-menubar.add_cascade(label="ตั้งค่า", font=("times", 29, " bold "), menu=filemenu)
+menubar.add_cascade(label="ตั้งค่า", font=(
+    "times", 29, " bold "), menu=filemenu)
 
 ################## TREEVIEW ATTENDANCE TABLE ####################
 
