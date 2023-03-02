@@ -63,7 +63,7 @@ def TakeImages():
             # saving the captured face in the dataset folder TrainingImage
             cv2.imwrite(
                 "dataset/User." + Id + "." + str(sampleNum) + ".jpg",
-                gray[y: y + h, x: x + w],
+                gray[y : y + h, x : x + w],
             )
         # display the frame
         fpsInfo = "FPS: " + str(1.0 / (time.time() - start_time))
@@ -102,6 +102,7 @@ def TakeImages():
 #     res = "Image Trained"  +",".join(str(f) for f in Id)
 #     message.configure(text=res)
 
+
 def TrainImages():
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     harcascadePath = "haarcascade_frontalface_default.xml"
@@ -124,7 +125,7 @@ def getImagesAndLabels(path):
         Id = int(os.path.split(imagePath)[-1].split(".")[1])
         faces.append(imageNp)
         Ids.append(Id)
-    return faces, Ids# Load images and labels
+    return faces, Ids  # Load images and labels
     # faces = []
     # labels = []
     # for root, dirs, files in os.walk("TrainingImage"):
@@ -165,7 +166,6 @@ def TrackImages():
 
     faces, Ids = TrainImages()
 
-
     cam = cv2.VideoCapture(0)
     font = cv2.FONT_HERSHEY_SIMPLEX
     col_names = ["Id", "", "Name", "", "Date", "", "Time", ""]
@@ -173,8 +173,7 @@ def TrackImages():
     if exists1:
         df = pd.read_csv("StudentDetails\StudentDetails.csv")
     else:
-        mess._show(title="ไม่มีรายละเอียด",
-                   message="ไม่มีรายละเอียดข้อมูลโปรดตรวจสอบ!")
+        mess._show(title="ไม่มีรายละเอียด", message="ไม่มีรายละเอียดข้อมูลโปรดตรวจสอบ!")
         cam.release()
         cv2.destroyAllWindows()
         window.destroy()
@@ -203,14 +202,13 @@ def TrackImages():
         # bb = ''
         for (x, y, w, h) in faces:
             cv2.rectangle(im, (x, y), (x + w, y + h), (225, 0, 0), 2)
-            gray_face = gray[y: y + h, x: x + w]
+            gray_face = gray[y : y + h, x : x + w]
             label, conf = recognizer.predict(gray_face)
             if conf < 50:
                 # print(conf)
                 ts = time.time()
                 date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
-                timeStamp = datetime.datetime.fromtimestamp(
-                    ts).strftime("%H:%M:%S")
+                timeStamp = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S")
                 # ID = str(ID)
                 # ID = ID[1:-1]
                 # bb = bb[2:-2]
@@ -220,7 +218,7 @@ def TrackImages():
                 # print(label)
                 # print(bb)
                 # bb = str(df.loc[df['Id'] == int(ID)]['Name'].values)
-                
+
                 if conf < 40:
                     attendance = [
                         str(ID),
@@ -232,10 +230,86 @@ def TrackImages():
                         str(timeStamp),
                         "",
                     ]
+                    with open(
+                        "Attendance\Attendance_" + date + ".csv", "r"
+                    ) as csvFile1:
+                        next(csvFile1)
+                        # next(csvFile1)
+                        reader = csv.reader(csvFile1)
+                        csv_date = None
+                        csv_time = None
+                        row_count = sum(1 for row in reader)
+                        csvFile1.seek(0)
+                        next(csvFile1)
+                        reader = csv.reader(csvFile1)
+                        # print(row_count)
+                        if row_count > 1:
+
+                            lines = [l.strip() for l in csvFile1.readlines()]
+                            for line in lines[:-1]:
+                                if line:
+                                    fields = line.split(",")
+                                    # print(fields)
+                                    # print(type(fields))
+                                    info_id = int(fields[0])
+                                    print(info_id)
+                                    print(ID)
+                                    if info_id == ID:
+                                        csv_date = fields[3]
+                                        csv_time = fields[5]
+                                        break
+                                else:
+                                    continue
+                            print(csv_date, csv_time)
+                            # info_id = int(last_non_empty[0])
+                            # print(info_id)
+                            # print(ID)
+                            # if info_id == ID:
+                            #     csv_date = last_non_empty[1]
+                            #     csv_time = last_non_empty[2]
+                            #     break
+                            # else:
+                            #     continue
+                            # reader = csv.reader(csvFile1)
+                            # for row in reader:
+                            #     # print(list(reader)[-1])
+                            #     if row:
+                            #         info_id = int(row[0])
+                            #         print(info_id)
+                            #         print(ID)
+                            #         if info_id == ID:
+                            #             csv_date = row[3]
+                            #             csv_time = row[5]
+                            #             break
+                            #         else:
+                            #             continue
+                            #     else:
+                            #         continue
+                        else:
+                            csv_date = None
+                            csv_time = None
+                    csvFile1.close()
+                    # print(csv_date, csv_time)
+
                     # put attendance in csv file
-                    with open("Attendance\Attendance_" + date + ".csv", "a+") as csvFile1:
+                    with open(
+                        "Attendance\Attendance_" + date + ".csv", "a+"
+                    ) as csvFile1:
                         writer = csv.writer(csvFile1)
-                        writer.writerow(attendance)
+                        if csv_date == None or csv_time == None:
+                            writer.writerow(attendance)
+                            print("write already")
+                        else:
+                            csv_time = datetime.datetime.strptime(csv_time, "%H:%M:%S")
+                            timeCompare = datetime.datetime.strptime(
+                                timeStamp, "%H:%M:%S"
+                            )
+                            if date == csv_date:
+                                print(type(timeCompare), type(csv_time))
+                                # if timeStamp - csv_time < :
+                                # print(timeStamp - csv_time)
+
+                        # writer.writerow(attendance)
                     csvFile1.close()
                     cv2.imshow("Taking Attendance", im)
 
@@ -243,10 +317,8 @@ def TrackImages():
                 # print(conf)
                 ts = time.time()
                 date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
-                timeStamp = datetime.datetime.fromtimestamp(
-                    ts).strftime("%H:%M:%S")
-                timeStamp1 = datetime.datetime.fromtimestamp(
-                    ts).strftime("%H-%M-%S")
+                timeStamp = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S")
+                timeStamp1 = datetime.datetime.fromtimestamp(ts).strftime("%H-%M-%S")
                 # ID =label
                 ID = "unknown"
                 # ID = ID[1:-1]
@@ -413,8 +485,7 @@ lbl = tk.Label(
 )
 lbl.place(x=80, y=55)
 
-txt = tk.Entry(frame2, width=32, fg="black",
-               bg="white", font=("times", 15, " bold "))
+txt = tk.Entry(frame2, width=32, fg="black", bg="white", font=("times", 15, " bold "))
 txt.place(x=30, y=88)
 
 lbl2 = tk.Label(
@@ -488,8 +559,7 @@ filemenu = tk.Menu(menubar, tearoff=0)
 # filemenu.add_command(label='เปลี่ยนรหัส', command = change_pass)
 # filemenu.add_command(label='ติดต่อ', command = contact)
 filemenu.add_command(label="ออก", command=window.destroy)
-menubar.add_cascade(label="ตั้งค่า", font=(
-    "times", 29, " bold "), menu=filemenu)
+menubar.add_cascade(label="ตั้งค่า", font=("times", 29, " bold "), menu=filemenu)
 
 ################## TREEVIEW ATTENDANCE TABLE ####################
 
