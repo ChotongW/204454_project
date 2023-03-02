@@ -200,52 +200,74 @@ def TrackImages():
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         faces = faceCascade.detectMultiScale(gray, 1.05, 5, minSize=(20, 20))
         # TrainImages()
+        # bb = ''
         for (x, y, w, h) in faces:
             cv2.rectangle(im, (x, y), (x + w, y + h), (225, 0, 0), 2)
             gray_face = gray[y: y + h, x: x + w]
-        #     # ของเดิม serial, conf = recognizer.predict(gray[y:y + h, x:x + w])
-            # conf = recognizer.predict(gray[y: y + h, x: x + w])
             label, conf = recognizer.predict(gray_face)
             if conf < 50:
-                print(conf)
+                # print(conf)
                 ts = time.time()
                 date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
                 timeStamp = datetime.datetime.fromtimestamp(
                     ts).strftime("%H:%M:%S")
                 # ID = str(ID)
                 # ID = ID[1:-1]
-                bb = bb[2:-2]
-                ID = str(Ids[label])
+                # bb = bb[2:-2]
+                # print(faces1)
+                ID = label
+                # ID = "unknown"
+                # print(label)
+                # print(bb)
                 # bb = str(df.loc[df['Id'] == int(ID)]['Name'].values)
-
-            else:
-                print(conf)
-                ts = time.time()
-                date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
-                timeStamp = datetime.datetime.fromtimestamp(
-                    ts).strftime("%H:%M:%S")
-                timeStamp1 = datetime.datetime.fromtimestamp(
-                    ts).strftime("%H-%M-%S")
-                ID = "000000"
-                ID = ID[1:-1]
-                bb = "Undefined"
-                # ID = str(Ids[label])
-                # bb = str(df.loc[df['Id'] == int(ID)]['Name'].values)
-
-                if conf > 75:
-
+                
+                if conf < 40:
                     attendance = [
                         str(ID),
                         "",
-                        bb,
+                        # bb,
                         "",
                         str(date),
                         "",
                         str(timeStamp),
                         "",
                     ]
+                    # put attendance in csv file
+                    with open("Attendance\Attendance_" + date + ".csv", "a+") as csvFile1:
+                        writer = csv.writer(csvFile1)
+                        writer.writerow(attendance)
+                    csvFile1.close()
+                    cv2.imshow("Taking Attendance", im)
 
-            cv2.putText(im, str(bb), (x, y + h), font, 1, (255, 255, 255), 2)
+            else:
+                # print(conf)
+                ts = time.time()
+                date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
+                timeStamp = datetime.datetime.fromtimestamp(
+                    ts).strftime("%H:%M:%S")
+                timeStamp1 = datetime.datetime.fromtimestamp(
+                    ts).strftime("%H-%M-%S")
+                # ID =label
+                ID = "unknown"
+                # ID = ID[1:-1]
+                # bb = "Undefined"
+                # ID = str(Ids[label])
+                # bb = str(df.loc[df['Id'] == int(ID)]['Name'].values)
+
+                # if conf > 75:
+
+                #     attendance = [
+                #         str(ID),
+                #         "",
+                #         # bb,
+                #         "",
+                #         str(date),
+                #         "",
+                #         str(timeStamp),
+                #         "",
+                #     ]
+
+            cv2.putText(im, str(ID), (x, y + h), font, 1, (255, 255, 255), 2)
 
         fpsInfo = "FPS: " + str(1.0 / (time.time() - start_time))
         font = cv2.FONT_HERSHEY_DUPLEX
@@ -257,26 +279,26 @@ def TrackImages():
         if cv2.waitKey(1) == ord("q"):
             break
 
-    with open("Attendance\Attendance_" + date + ".csv", "r") as csvFile1:
-        reader1 = csv.reader(csvFile1)
-        i = 0
-        for lines in reader1:
-            i = i + 1
-            if i > 1:
-                if i % 2 != 0:
-                    iidd = str(lines[0]) + "   "
-                    tv.insert(
-                        "",
-                        0,
-                        text=iidd,
-                        values=(
-                            str(lines[2]),
-                            str(lines[4]),
-                            str(lines[6]),
-                            str(lines[8]),
-                        ),
-                    )
-    csvFile1.close()
+    # with open("Attendance\Attendance_" + date + ".csv", "r") as csvFile1:
+    #     reader1 = csv.reader(csvFile1)
+    #     i = 0
+    #     for lines in reader1:
+    #         i = i + 1
+    #         if i > 1:
+    #             if i % 2 != 0:
+    #                 iidd = str(lines[0]) + "   "
+    #                 tv.insert(
+    #                     "",
+    #                     0,
+    #                     text=iidd,
+    #                     values=(
+    #                         str(lines[2]),
+    #                         str(lines[4]),
+    #                         str(lines[6]),
+    #                         str(lines[8]),
+    #                     ),
+    #                 )
+    # csvFile1.close()
 
     cam.release()
     cv2.destroyAllWindows()
