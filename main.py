@@ -10,6 +10,7 @@ import numpy as np
 from PIL import Image
 import pandas as pd
 import datetime
+from datetime import timedelta
 
 import time
 from PIL import ImageFont
@@ -30,6 +31,55 @@ def clear2():
     txt2.delete(0, "end")
     res = ""
     message.configure(text=res)
+
+
+def read_file(filename):
+    with open("Attendance\Attendance_" + date + ".csv", "r") as filename:
+        next(filename)
+        # next(filename)
+        reader = csv.reader(filename)
+        # csv_date = None
+        # csv_time = None
+        row_count = sum(1 for row in reader)
+        filename.seek(0)
+        next(filename)
+        # reader = csv.reader(filename)
+        # print(row_count)
+        if row_count > 1:
+            for lines in reader:
+                i = i + 1
+                if i > 1:
+                    if i % 2 != 0:
+                        iidd = str(lines[0]) + "   "
+                        tv.insert(
+                            "",
+                            0,
+                            text=iidd,
+                            values=(
+                                str(lines[2]),
+                                str(lines[4]),
+                                str(lines[6]),
+                                str(lines[8]),
+                            ),
+                        )
+            lines = [l.strip() for l in filename.readlines()]
+            for line in lines:
+                if line:
+                    fields = line.split(",")
+                    # print(fields)
+                    # print(type(fields))
+                    info_id = int(fields[0])
+                    # print(info_id)
+                    # print(ID)
+                    if info_id == ID:
+                        # csv_date = fields[3]
+                        # csv_time = fields[5]
+                        is_checked = True
+                        break
+                else:
+                    continue
+
+    filename.close()
 
 
 def TakeImages():
@@ -152,6 +202,8 @@ def psw():
 
 
 def TrackImages():
+    # varible for cathing attendance
+    is_checked = False
     # recognizer for face detection
 
     recognizer = cv2.face.LBPHFaceRecognizer_create()
@@ -236,31 +288,31 @@ def TrackImages():
                         next(csvFile1)
                         # next(csvFile1)
                         reader = csv.reader(csvFile1)
-                        csv_date = None
-                        csv_time = None
+                        # csv_date = None
+                        # csv_time = None
                         row_count = sum(1 for row in reader)
                         csvFile1.seek(0)
                         next(csvFile1)
-                        reader = csv.reader(csvFile1)
+                        # reader = csv.reader(csvFile1)
                         # print(row_count)
                         if row_count > 1:
 
                             lines = [l.strip() for l in csvFile1.readlines()]
-                            for line in lines[:-1]:
+                            for line in lines:
                                 if line:
                                     fields = line.split(",")
                                     # print(fields)
                                     # print(type(fields))
                                     info_id = int(fields[0])
-                                    print(info_id)
-                                    print(ID)
+                                    # print(info_id)
+                                    # print(ID)
                                     if info_id == ID:
-                                        csv_date = fields[3]
-                                        csv_time = fields[5]
+                                        # csv_date = fields[3]
+                                        # csv_time = fields[5]
+                                        is_checked = True
                                         break
                                 else:
                                     continue
-                            print(csv_date, csv_time)
                             # info_id = int(last_non_empty[0])
                             # print(info_id)
                             # print(ID)
@@ -286,8 +338,7 @@ def TrackImages():
                             #     else:
                             #         continue
                         else:
-                            csv_date = None
-                            csv_time = None
+                            None
                     csvFile1.close()
                     # print(csv_date, csv_time)
 
@@ -296,18 +347,33 @@ def TrackImages():
                         "Attendance\Attendance_" + date + ".csv", "a+"
                     ) as csvFile1:
                         writer = csv.writer(csvFile1)
-                        if csv_date == None or csv_time == None:
+                        if is_checked == False:
                             writer.writerow(attendance)
-                            print("write already")
+                            print("attendance checked already")
+                            is_checked = True
                         else:
-                            csv_time = datetime.datetime.strptime(csv_time, "%H:%M:%S")
-                            timeCompare = datetime.datetime.strptime(
-                                timeStamp, "%H:%M:%S"
+                            # csv_time = datetime.datetime.strptime(csv_time, "%H:%M:%S")
+                            # timeCompare = datetime.datetime.strptime(
+                            #     timeStamp, "%H:%M:%S"
+                            # )
+                            # if date == csv_date:
+                            #     print(type(timeCompare), type(csv_time))
+                            #     time_diff = timeCompare - csv_time
+                            #     print(time_diff)
+                            #     if time_diff > timedelta(hours=8):
+                            #         print("Timestamp is greater than 8 hours ago")
+
+                            #     # elif timestamp < start_time or timestamp > end_time:
+
+                            #     # if timeStamp - csv_time < 8:
+
+                            #     # print(timeStamp - csv_time)
+                            # print("You already cheked")
+                            # create_popup_checked
+                            mess._show(
+                                title="checked",
+                                message="You are already checked for this day!!",
                             )
-                            if date == csv_date:
-                                print(type(timeCompare), type(csv_time))
-                                # if timeStamp - csv_time < :
-                                # print(timeStamp - csv_time)
 
                         # writer.writerow(attendance)
                     csvFile1.close()
@@ -348,29 +414,29 @@ def TrackImages():
         startTime = time.time()
 
         cv2.imshow("Taking Attendance", im)
-        if cv2.waitKey(1) == ord("q"):
+        if cv2.waitKey(1) == ord("q") or is_checked == True:
             break
 
-    # with open("Attendance\Attendance_" + date + ".csv", "r") as csvFile1:
-    #     reader1 = csv.reader(csvFile1)
-    #     i = 0
-    #     for lines in reader1:
-    #         i = i + 1
-    #         if i > 1:
-    #             if i % 2 != 0:
-    #                 iidd = str(lines[0]) + "   "
-    #                 tv.insert(
-    #                     "",
-    #                     0,
-    #                     text=iidd,
-    #                     values=(
-    #                         str(lines[2]),
-    #                         str(lines[4]),
-    #                         str(lines[6]),
-    #                         str(lines[8]),
-    #                     ),
-    #                 )
-    # csvFile1.close()
+    with open("Attendance\Attendance_" + date + ".csv", "r") as csvFile1:
+        reader1 = csv.reader(csvFile1)
+        i = 0
+        for lines in reader1:
+            i = i + 1
+            if i > 1:
+                if i % 2 != 0:
+                    iidd = str(lines[0]) + "   "
+                    tv.insert(
+                        "",
+                        0,
+                        text=iidd,
+                        values=(
+                            str(lines[2]),
+                            str(lines[4]),
+                            str(lines[6]),
+                            str(lines[8]),
+                        ),
+                    )
+    csvFile1.close()
 
     cam.release()
     cv2.destroyAllWindows()
@@ -537,6 +603,22 @@ lbl3 = tk.Label(
     font=("times", 17, " bold "),
 )
 lbl3.place(x=100, y=115)
+
+
+def create_popup_checked():
+    # Create the popup window
+    popup = tk.Toplevel(window)
+
+    # Set the title of the popup window
+    popup.title("Checked")
+
+    # Create a label and pack it into the popup window
+    label = tk.Label(popup, text="You are already checked for this day!")
+    label.pack(padx=10, pady=10)
+
+    # Create a button to close the popup window and pack it into the popup window
+    button = tk.Button(popup, text="Close", command=popup.destroy)
+    button.pack(padx=10, pady=10)
 
 
 # res=0

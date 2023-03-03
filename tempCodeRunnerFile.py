@@ -1,2 +1,3 @@
 
-                                        csv_date = row[3]
+                            #     print(type(timeCompare), type(csv_time))
+                            #     time_diff = timeCompare - csv_time
