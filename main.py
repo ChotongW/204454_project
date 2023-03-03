@@ -33,53 +33,87 @@ def clear2():
     message.configure(text=res)
 
 
-def read_file(filename):
-    with open("Attendance\Attendance_" + date + ".csv", "r") as filename:
-        next(filename)
-        # next(filename)
-        reader = csv.reader(filename)
+def tvInsert(id, date, timestamp):
+
+    with open("StudentDetails\StudentDetails.csv", "r") as studentFile:
+        reader2 = csv.reader(studentFile)
+        iidd = str(id) + "   "
+        # if item['id'] in existing_ids:
+        #     return
+        # # Add the new item to the treeview
+        # existing_ids.add(item['id'])
+        # treeview.insert('', 'end', values=(item['id'], item['name'], item['age']))
+        for row in reader2:
+            if row:
+                clean_reader2 = [column.strip() for column in row]
+                # print(clean_reader2)
+                if clean_reader2[0] == str(id):
+                    name = clean_reader2[2]
+                    break
+                    # print(name)
+        tv.insert(
+            "",
+            0,
+            text=iidd,
+            values=(
+                str(name),
+                str(date),
+                str(timestamp),
+            ),
+        )
+    studentFile.close()
+
+
+def csv_Init_tv():
+    with open("Attendance\Attendance_" + date + ".csv", "r") as csvFile1:
+        next(csvFile1)
+        # next(csvFile1)
+        reader = csv.reader(csvFile1)
         # csv_date = None
         # csv_time = None
         row_count = sum(1 for row in reader)
-        filename.seek(0)
-        next(filename)
-        # reader = csv.reader(filename)
+        csvFile1.seek(0)
+        next(csvFile1)
+        # reader = csv.reader(csvFile1)
         # print(row_count)
         if row_count > 1:
-            for lines in reader:
-                i = i + 1
-                if i > 1:
-                    if i % 2 != 0:
-                        iidd = str(lines[0]) + "   "
+            with open("StudentDetails\StudentDetails.csv", "r") as studentFile:
+                name = ""
+                reader2 = csv.reader(studentFile)
+
+                lines = [l.strip() for l in csvFile1.readlines()]
+                for line in lines:
+                    if line:
+                        fields = line.split(",")
+                        # print(fields)
+                        # print(type(fields))
+                        info_id = fields[0]
+                        iidd = str(info_id) + "   "
+                        csv_date = fields[3]
+                        csv_time = fields[5]
+                        for row in reader2:
+                            if row:
+                                clean_reader2 = [column.strip() for column in row]
+                                # print(clean_reader2)
+                                if clean_reader2[0] == str(info_id):
+                                    name = clean_reader2[2]
+                                    break
+                                    # print(name)
                         tv.insert(
                             "",
                             0,
                             text=iidd,
                             values=(
-                                str(lines[2]),
-                                str(lines[4]),
-                                str(lines[6]),
-                                str(lines[8]),
+                                str(name),
+                                str(csv_date),
+                                str(csv_time),
                             ),
                         )
-            lines = [l.strip() for l in filename.readlines()]
-            for line in lines:
-                if line:
-                    fields = line.split(",")
-                    # print(fields)
-                    # print(type(fields))
-                    info_id = int(fields[0])
-                    # print(info_id)
-                    # print(ID)
-                    if info_id == ID:
-                        # csv_date = fields[3]
-                        # csv_time = fields[5]
-                        is_checked = True
-                        break
-                else:
-                    continue
+            studentFile.close()
+        else:
+            return
 
-    filename.close()
+    csvFile1.close()
 
 
 def TakeImages():
@@ -202,8 +236,6 @@ def psw():
 
 
 def TrackImages():
-    # varible for cathing attendance
-    is_checked = False
     # recognizer for face detection
 
     recognizer = cv2.face.LBPHFaceRecognizer_create()
@@ -242,7 +274,8 @@ def TrackImages():
         csvFile1.close()
 
     while True:
-
+        # varible for cathing attendance
+        is_checked = False
         ret, im = cam.read()
 
         start_time = time.time()
@@ -270,7 +303,6 @@ def TrackImages():
                 # print(label)
                 # print(bb)
                 # bb = str(df.loc[df['Id'] == int(ID)]['Name'].values)
-
                 if conf < 40:
                     attendance = [
                         str(ID),
@@ -307,41 +339,15 @@ def TrackImages():
                                     # print(info_id)
                                     # print(ID)
                                     if info_id == ID:
+                                        is_checked = True
                                         # csv_date = fields[3]
                                         # csv_time = fields[5]
-                                        is_checked = True
+                                        # print("call")
                                         break
-                                else:
-                                    continue
-                            # info_id = int(last_non_empty[0])
-                            # print(info_id)
-                            # print(ID)
-                            # if info_id == ID:
-                            #     csv_date = last_non_empty[1]
-                            #     csv_time = last_non_empty[2]
-                            #     break
-                            # else:
-                            #     continue
-                            # reader = csv.reader(csvFile1)
-                            # for row in reader:
-                            #     # print(list(reader)[-1])
-                            #     if row:
-                            #         info_id = int(row[0])
-                            #         print(info_id)
-                            #         print(ID)
-                            #         if info_id == ID:
-                            #             csv_date = row[3]
-                            #             csv_time = row[5]
-                            #             break
-                            #         else:
-                            #             continue
-                            #     else:
-                            #         continue
+
                         else:
                             None
                     csvFile1.close()
-                    # print(csv_date, csv_time)
-
                     # put attendance in csv file
                     with open(
                         "Attendance\Attendance_" + date + ".csv", "a+"
@@ -350,7 +356,8 @@ def TrackImages():
                         if is_checked == False:
                             writer.writerow(attendance)
                             print("attendance checked already")
-                            is_checked = True
+                            tvInsert(attendance[0], attendance[3], attendance[5])
+                            # is_checked = True
                         else:
                             # csv_time = datetime.datetime.strptime(csv_time, "%H:%M:%S")
                             # timeCompare = datetime.datetime.strptime(
@@ -414,29 +421,29 @@ def TrackImages():
         startTime = time.time()
 
         cv2.imshow("Taking Attendance", im)
-        if cv2.waitKey(1) == ord("q") or is_checked == True:
+        if cv2.waitKey(1) == ord("q"):
             break
 
-    with open("Attendance\Attendance_" + date + ".csv", "r") as csvFile1:
-        reader1 = csv.reader(csvFile1)
-        i = 0
-        for lines in reader1:
-            i = i + 1
-            if i > 1:
-                if i % 2 != 0:
-                    iidd = str(lines[0]) + "   "
-                    tv.insert(
-                        "",
-                        0,
-                        text=iidd,
-                        values=(
-                            str(lines[2]),
-                            str(lines[4]),
-                            str(lines[6]),
-                            str(lines[8]),
-                        ),
-                    )
-    csvFile1.close()
+    # with open("Attendance\Attendance_" + date + ".csv", "r") as csvFile1:
+    #     reader1 = csv.reader(csvFile1)
+    #     i = 0
+    #     for lines in reader1:
+    #         i = i + 1
+    #         if i > 1:
+    #             if i % 2 != 0:
+    #                 iidd = str(lines[0]) + "   "
+    #                 tv.insert(
+    #                     "",
+    #                     0,
+    #                     text=iidd,
+    #                     values=(
+    #                         str(lines[2]),
+    #                         str(lines[4]),
+    #                         str(lines[6]),
+    #                         str(lines[8]),
+    #                     ),
+    #                 )
+    # csvFile1.close()
 
     cam.release()
     cv2.destroyAllWindows()
@@ -604,23 +611,6 @@ lbl3 = tk.Label(
 )
 lbl3.place(x=100, y=115)
 
-
-def create_popup_checked():
-    # Create the popup window
-    popup = tk.Toplevel(window)
-
-    # Set the title of the popup window
-    popup.title("Checked")
-
-    # Create a label and pack it into the popup window
-    label = tk.Label(popup, text="You are already checked for this day!")
-    label.pack(padx=10, pady=10)
-
-    # Create a button to close the popup window and pack it into the popup window
-    button = tk.Button(popup, text="Close", command=popup.destroy)
-    button.pack(padx=10, pady=10)
-
-
 # res=0
 # exists = os.path.isfile("StudentDetails\StudentDetails.csv")
 # if exists:
@@ -655,6 +645,7 @@ tv.heading("#0", text="รหัส")
 tv.heading("name", text="ชื่อ")
 tv.heading("date", text="วันที่")
 tv.heading("time", text="เวลา")
+csv_Init_tv()
 
 
 ###################### SCROLLBAR ################################
