@@ -65,6 +65,15 @@ def tvInsert(id, date, timestamp):
 
 
 def csv_Init_tv():
+    col_names = ["Id", "", "Name", "", "Date", "", "Time", ""]
+    exists = os.path.isfile("Attendance\Attendance_" + date + ".csv")
+    if exists:
+        None
+    else:
+        with open("Attendance\Attendance_" + date + ".csv", "a+") as csvFile1:
+            writer = csv.writer(csvFile1)
+            writer.writerow(col_names)
+        csvFile1.close()
     with open("Attendance\Attendance_" + date + ".csv", "r") as csvFile1:
         next(csvFile1)
         # next(csvFile1)
