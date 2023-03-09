@@ -102,7 +102,8 @@ def csv_Init_tv():
                         csv_time = fields[5]
                         for row in reader2:
                             if row:
-                                clean_reader2 = [column.strip() for column in row]
+                                clean_reader2 = [column.strip()
+                                                 for column in row]
                                 # print(clean_reader2)
                                 if clean_reader2[0] == str(info_id):
                                     name = clean_reader2[2]
@@ -156,7 +157,7 @@ def TakeImages():
             # saving the captured face in the dataset folder TrainingImage
             cv2.imwrite(
                 "dataset/User." + Id + "." + str(sampleNum) + ".jpg",
-                gray[y : y + h, x : x + w],
+                gray[y: y + h, x: x + w],
             )
         # display the frame
         fpsInfo = "FPS: " + str(1.0 / (time.time() - start_time))
@@ -167,7 +168,7 @@ def TakeImages():
         if cv2.waitKey(100) & 0xFF == ord("q"):
             break
         # break if the sample number is morethan 100
-        elif sampleNum > 100:
+        elif sampleNum > 200:
             break
 
     cap.release()
@@ -266,7 +267,8 @@ def TrackImages():
     if exists1:
         df = pd.read_csv("StudentDetails\StudentDetails.csv")
     else:
-        mess._show(title="ไม่มีรายละเอียด", message="ไม่มีรายละเอียดข้อมูลโปรดตรวจสอบ!")
+        mess._show(title="ไม่มีรายละเอียด",
+                   message="ไม่มีรายละเอียดข้อมูลโปรดตรวจสอบ!")
         cam.release()
         cv2.destroyAllWindows()
         window.destroy()
@@ -296,13 +298,14 @@ def TrackImages():
         # bb = ''
         for (x, y, w, h) in faces:
             cv2.rectangle(im, (x, y), (x + w, y + h), (225, 0, 0), 2)
-            gray_face = gray[y : y + h, x : x + w]
+            gray_face = gray[y: y + h, x: x + w]
             label, conf = recognizer.predict(gray_face)
             if conf < 50:
                 # print(conf)
                 ts = time.time()
                 date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
-                timeStamp = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S")
+                timeStamp = datetime.datetime.fromtimestamp(
+                    ts).strftime("%H:%M:%S")
                 # ID = str(ID)
                 # ID = ID[1:-1]
                 # bb = bb[2:-2]
@@ -365,7 +368,8 @@ def TrackImages():
                         if is_checked == False:
                             writer.writerow(attendance)
                             print("attendance checked already")
-                            tvInsert(attendance[0], attendance[3], attendance[5])
+                            tvInsert(attendance[0],
+                                     attendance[3], attendance[5])
                             # is_checked = True
                         else:
                             # csv_time = datetime.datetime.strptime(csv_time, "%H:%M:%S")
@@ -399,8 +403,10 @@ def TrackImages():
                 # print(conf)
                 ts = time.time()
                 date = datetime.datetime.fromtimestamp(ts).strftime("%d-%m-%Y")
-                timeStamp = datetime.datetime.fromtimestamp(ts).strftime("%H:%M:%S")
-                timeStamp1 = datetime.datetime.fromtimestamp(ts).strftime("%H-%M-%S")
+                timeStamp = datetime.datetime.fromtimestamp(
+                    ts).strftime("%H:%M:%S")
+                timeStamp1 = datetime.datetime.fromtimestamp(
+                    ts).strftime("%H-%M-%S")
                 # ID =label
                 ID = "unknown"
                 # ID = ID[1:-1]
@@ -567,7 +573,8 @@ lbl = tk.Label(
 )
 lbl.place(x=80, y=55)
 
-txt = tk.Entry(frame2, width=32, fg="black", bg="white", font=("times", 15, " bold "))
+txt = tk.Entry(frame2, width=32, fg="black",
+               bg="white", font=("times", 15, " bold "))
 txt.place(x=30, y=88)
 
 lbl2 = tk.Label(
@@ -640,7 +647,8 @@ filemenu = tk.Menu(menubar, tearoff=0)
 # filemenu.add_command(label='เปลี่ยนรหัส', command = change_pass)
 # filemenu.add_command(label='ติดต่อ', command = contact)
 filemenu.add_command(label="ออก", command=window.destroy)
-menubar.add_cascade(label="ตั้งค่า", font=("times", 29, " bold "), menu=filemenu)
+menubar.add_cascade(label="ตั้งค่า", font=(
+    "times", 29, " bold "), menu=filemenu)
 
 ################## TREEVIEW ATTENDANCE TABLE ####################
 
